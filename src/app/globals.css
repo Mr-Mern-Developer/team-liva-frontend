@@ -71,10 +71,17 @@
            hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60;
   }
 
+  /*
+   * text-base below sm is not a design choice: iOS Safari zooms the whole page
+   * when a focused form control renders below 16px, and it does not zoom back
+   * out — the layout stays broken for the rest of the visit. 16px on phones,
+   * the intended 12px from sm up, where no browser does this.
+   */
   .field {
-    @apply w-full rounded-xl border border-slate-200 bg-white p-3 text-xs font-bold
+    @apply w-full rounded-xl border border-slate-200 bg-white p-3 text-base font-bold
            text-brand-900 placeholder:font-semibold placeholder:text-slate-400
-           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
+           sm:text-xs;
   }
 
   .field-error {

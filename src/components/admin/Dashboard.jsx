@@ -144,11 +144,13 @@ export default function Dashboard({ user }) {
   };
 
   const statusCell = (row) => (
+    // text-base below sm: iOS Safari zooms the page whenever a focused control
+    // renders under 16px, and the table already scrolls horizontally there.
     <select
       value={row.status}
       onChange={(e) => handleStatusChange(row._id, e.target.value)}
       aria-label={`Status for ${row.name || row.fullName}`}
-      className={`rounded-lg px-2 py-1 text-[10px] font-black uppercase tracking-wide ring-1 focus:outline-none focus:ring-2 ${statusClasses(
+      className={`rounded-lg px-2 py-1 text-base font-black uppercase tracking-wide ring-1 focus:outline-none focus:ring-2 sm:text-[10px] ${statusClasses(
         row.status
       )}`}
     >
