@@ -78,3 +78,4 @@ Cloudflare Pages settings:
 Set `NEXT_PUBLIC_API_URL` (your deployed API) and `NEXT_PUBLIC_SITE_URL` as
 build-time environment variables in the Pages project, and add the Pages domain
 to `CORS_ORIGIN` on the backend.
+# team-liva-frontend
