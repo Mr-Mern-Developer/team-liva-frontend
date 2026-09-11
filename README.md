@@ -14,9 +14,11 @@ Statically exported, so it deploys to Cloudflare Pages with no Node runtime.
 
 ```bash
 npm install
-cp .env.local.example .env.local   # then fill in the values
-npm run dev                        # http://localhost:3000
+npm run dev        # http://localhost:3000
 ```
+
+No setup step — `.env` is committed and already points at the deployed API, so a
+fresh clone runs against production out of the box.
 
 ### Environment
 
@@ -25,8 +27,12 @@ npm run dev                        # http://localhost:3000
 | `NEXT_PUBLIC_API_URL`  | Base URL of the Express API, e.g. `https://teamliva-backend.vercel.app/api` |
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL — drives metadata, sitemap, OG tags |
 
-Both are inlined at **build time**. Change them and rebuild; editing them on the
-server after a build has no effect.
+Both are `NEXT_PUBLIC_*`, so Next.js inlines them into the browser bundle at
+**build time** — they are public, never put a secret in `.env`. Change them and
+rebuild; editing them on the server after a build has no effect.
+
+To point at a backend running locally, copy `.env.local.example` to `.env.local`
+and set the values there — `.env.local` is gitignored and overrides `.env`.
 
 ## Routes
 
