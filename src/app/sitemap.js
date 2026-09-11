@@ -1,4 +1,4 @@
-import { SITE_URL } from '@/lib/seo';
+import { canonicalUrl } from '@/lib/seo';
 
 // Emitted as a static sitemap.xml at build time (output: 'export').
 export const dynamic = 'force-static';
@@ -19,7 +19,7 @@ export default function sitemap() {
   const lastModified = new Date();
 
   return ROUTES.map((r) => ({
-    url: `${SITE_URL}${r.path}`,
+    url: canonicalUrl(r.path),
     lastModified,
     changeFrequency: r.changeFrequency,
     priority: r.priority,

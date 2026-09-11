@@ -1,4 +1,19 @@
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+// Trailing slash stripped so appending a path can never produce a double slash,
+// however the env var happens to be written.
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+).replace(/\/+$/, '');
+
+/**
+ * next.config.js sets `trailingSlash`, so /services is actually served as
+ * /services/. Canonical tags and sitemap entries have to match that exactly —
+ * otherwise every URL we publish redirects to a different one, which splits
+ * ranking signals and wastes crawl budget.
+ */
+export function canonicalUrl(path = '/') {
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  return `${SITE_URL}${clean.replace(/\/+$/, '')}/`;
+}
 
 export const SITE = {
   name: 'Teamliva',
@@ -22,7 +37,7 @@ export function buildMetadata({
   keywords = [],
   noIndex = false,
 }) {
-  const url = `${SITE_URL}${path}`;
+  const url = canonicalUrl(path);
   const fullTitle = path === '/' ? title : `${title} | ${SITE.name}`;
 
   return {
