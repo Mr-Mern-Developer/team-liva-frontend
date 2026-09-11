@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://teamliva-backend.vercel.app/api';
 
 const TOKEN_KEY = 'teamliva_token';
 const USER_KEY = 'teamliva_user';

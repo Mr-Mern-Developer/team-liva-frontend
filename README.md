@@ -22,7 +22,7 @@ npm run dev                        # http://localhost:3000
 
 | Variable               | Purpose                                            |
 | ---------------------- | -------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`  | Base URL of the Express API, e.g. `http://localhost:5000/api` |
+| `NEXT_PUBLIC_API_URL`  | Base URL of the Express API, e.g. `https://teamliva-backend.vercel.app/api` |
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL — drives metadata, sitemap, OG tags |
 
 Both are inlined at **build time**. Change them and rebuild; editing them on the
