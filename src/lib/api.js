@@ -126,5 +126,8 @@ export const updateContactStatus = (id, status) =>
   api.patch(`/contacts/${id}`, { status }, { auth: true });
 export const updateApplicationStatus = (id, status) =>
   api.patch(`/applications/${id}`, { status }, { auth: true });
+export const deleteInquiry = (id) => api.del(`/inquiries/${id}`, { auth: true });
+export const deleteContact = (id) => api.del(`/contacts/${id}`, { auth: true });
+export const deleteApplication = (id) => api.del(`/applications/${id}`, { auth: true });
 
 export { API_URL };

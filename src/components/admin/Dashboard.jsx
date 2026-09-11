@@ -6,9 +6,13 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 import DataTable from './DataTable';
+import RecordModal from './RecordModal';
 import { statusClasses } from './StatusBadge';
 import {
   clearSession,
+  deleteApplication,
+  deleteContact,
+  deleteInquiry,
   fetchApplications,
   fetchContacts,
   fetchInquiries,
@@ -42,6 +46,12 @@ const UPDATERS = {
   applications: updateApplicationStatus,
 };
 
+const DELETERS = {
+  inquiries: deleteInquiry,
+  contacts: deleteContact,
+  applications: deleteApplication,
+};
+
 function formatDate(value) {
   if (!value) return '—';
   return new Date(value).toLocaleString(undefined, {
@@ -60,6 +70,8 @@ export default function Dashboard({ user }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [active, setActive] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const loadStats = useCallback(async () => {
     try {
@@ -96,6 +108,7 @@ export default function Dashboard({ user }) {
     const previous = rows;
     // Optimistic: the select should feel instant, and we roll back on failure.
     setRows((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
+    setActive((prev) => (prev && prev._id === id ? { ...prev, status } : prev));
     try {
       await UPDATERS[tab](id, status);
       toast.success(`Status set to "${status}"`);
@@ -103,6 +116,25 @@ export default function Dashboard({ user }) {
     } catch (err) {
       setRows(previous);
       toast.error(err.message || 'Could not update status.');
+    }
+  };
+
+  const handleDelete = async (record) => {
+    const label = record.name || record.fullName || 'this record';
+    // Deleting a submission is unrecoverable, so make it a deliberate click.
+    if (!window.confirm(`Delete the record from ${label}? This cannot be undone.`)) return;
+
+    setDeletingId(record._id);
+    try {
+      await DELETERS[tab](record._id);
+      setRows((prev) => prev.filter((r) => r._id !== record._id));
+      setActive(null);
+      toast.success('Record deleted');
+      loadStats();
+    } catch (err) {
+      toast.error(err.message || 'Could not delete the record.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -128,6 +160,45 @@ export default function Dashboard({ user }) {
     </select>
   );
 
+  // Long free text never fits a cell — open the full record instead.
+  const viewCell = (bodyKey, label) => (row) => {
+    const preview = row[bodyKey];
+    return (
+      <button
+        onClick={() => setActive(row)}
+        className="inline-flex max-w-[13rem] items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-left text-[11px] font-black text-brand-700 transition-colors hover:border-brand-500 hover:bg-brand-50"
+      >
+        <i className="fa-regular fa-message shrink-0 text-[10px]" aria-hidden="true" />
+        <span className="truncate">{preview ? preview.slice(0, 28) : `View ${label}`}</span>
+      </button>
+    );
+  };
+
+  const actionsCell = (row) => (
+    <div className="flex items-center gap-1.5">
+      <button
+        onClick={() => setActive(row)}
+        aria-label="View full record"
+        title="View"
+        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-black text-slate-600 hover:bg-slate-50"
+      >
+        <i className="fa-solid fa-eye" aria-hidden="true" />
+      </button>
+      <button
+        onClick={() => handleDelete(row)}
+        disabled={deletingId === row._id}
+        aria-label="Delete record"
+        title="Delete"
+        className="rounded-lg border border-rose-200 px-2.5 py-1.5 text-[11px] font-black text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+      >
+        <i
+          className={`fa-solid ${deletingId === row._id ? 'fa-spinner fa-spin' : 'fa-trash'}`}
+          aria-hidden="true"
+        />
+      </button>
+    </div>
+  );
+
   const COLUMNS = {
     inquiries: [
       {
@@ -147,20 +218,14 @@ export default function Dashboard({ user }) {
       { key: 'company', label: 'Company', render: (r) => r.company || '—' },
       { key: 'service', label: 'Service' },
       { key: 'teamSize', label: 'Scope' },
-      {
-        key: 'message',
-        label: 'Message',
-        className: 'max-w-xs',
-        render: (r) => (
-          <span className="line-clamp-2 font-semibold text-slate-600">{r.message || '—'}</span>
-        ),
-      },
+      { key: 'message', label: 'Message', render: viewCell('message', 'details') },
       { key: 'status', label: 'Status', render: statusCell },
       {
         key: 'createdAt',
         label: 'Received',
         render: (r) => <span className="whitespace-nowrap text-slate-500">{formatDate(r.createdAt)}</span>,
       },
+      { key: 'actions', label: '', render: actionsCell },
     ],
     contacts: [
       {
@@ -179,18 +244,14 @@ export default function Dashboard({ user }) {
       },
       { key: 'company', label: 'Company', render: (r) => r.company || '—' },
       { key: 'subject', label: 'Subject' },
-      {
-        key: 'message',
-        label: 'Message',
-        className: 'max-w-sm',
-        render: (r) => <span className="line-clamp-2 font-semibold text-slate-600">{r.message}</span>,
-      },
+      { key: 'message', label: 'Message', render: viewCell('message', 'message') },
       { key: 'status', label: 'Status', render: statusCell },
       {
         key: 'createdAt',
         label: 'Received',
         render: (r) => <span className="whitespace-nowrap text-slate-500">{formatDate(r.createdAt)}</span>,
       },
+      { key: 'actions', label: '', render: actionsCell },
     ],
     applications: [
       {
@@ -226,12 +287,14 @@ export default function Dashboard({ user }) {
             '—'
           ),
       },
+      { key: 'coverNote', label: 'Cover note', render: viewCell('coverNote', 'note') },
       { key: 'status', label: 'Status', render: statusCell },
       {
         key: 'createdAt',
         label: 'Applied',
         render: (r) => <span className="whitespace-nowrap text-slate-500">{formatDate(r.createdAt)}</span>,
       },
+      { key: 'actions', label: '', render: actionsCell },
     ],
   };
 
@@ -346,6 +409,14 @@ export default function Dashboard({ user }) {
           />
         </section>
       </div>
+
+      <RecordModal
+        record={active}
+        tab={tab}
+        onClose={() => setActive(null)}
+        onDelete={handleDelete}
+        deleting={deletingId === active?._id}
+      />
     </div>
   );
 }
