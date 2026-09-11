@@ -84,3 +84,14 @@ Cloudflare Pages settings:
 Set `NEXT_PUBLIC_API_URL` (your deployed API) and `NEXT_PUBLIC_SITE_URL` as
 build-time environment variables in the Pages project, and add the Pages domain
 to `CORS_ORIGIN` on the backend.
+
+### Deploying with `wrangler deploy`
+
+`wrangler.jsonc` declares an assets-only Worker serving `./out`. Keep it: with no
+wrangler config, `wrangler deploy` auto-detects "Next.js", assumes SSR and
+migrates the project onto the OpenNext adapter, which builds from
+`.next/standalone` — a directory `output: 'export'` never creates. The deploy
+then dies on `ENOENT … pages-manifest.json` even though `npm run build` passed.
+
+The deploy command must run **after** `npm run build`, since it only uploads
+whatever is already in `./out`.

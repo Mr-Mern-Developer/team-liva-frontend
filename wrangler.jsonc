@@ -1,0 +1,24 @@
+{
+  // Static-assets-only Worker: there is no `main`, so nothing runs at request
+  // time — Cloudflare just serves the files `next build` wrote to ./out.
+  //
+  // This file exists mainly to stop `wrangler deploy` auto-detecting "Next.js"
+  // and migrating the project to the OpenNext adapter. OpenNext builds an SSR
+  // server from .next/standalone, which `output: 'export'` never produces, so
+  // that path fails with ENOENT on pages-manifest.json.
+  "name": "teamliva",
+  "compatibility_date": "2026-09-10",
+
+  "assets": {
+    "directory": "./out",
+
+    // next.config.js sets trailingSlash, so routes land as /about/index.html
+    // and Cloudflare resolves the directory index on its own. Anything genuinely
+    // missing gets the exported 404.html.
+    "not_found_handling": "404-page"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}

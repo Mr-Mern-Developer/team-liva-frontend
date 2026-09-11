@@ -2,6 +2,7 @@ node_modules/
 .next/
 out/
 build/
+.wrangler/
 
 *.log
 npm-debug.log*
